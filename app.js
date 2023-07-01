@@ -3,6 +3,7 @@ const mongoose= require('mongoose');
 const bodyparser=require('body-parser');
 const cookieParser=require('cookie-parser');
 const db=require('./config/config').get(process.env.NODE_ENV);
+var categoryRouter = require('./project/category/routing');
 
 const app=express();
 // app use
@@ -30,11 +31,7 @@ mongoose.connect(url)
     console.log("Database is connected...");
   });
 
-
-
-app.get('/',function(req,res){
-    res.status(200).send(`Welcome to login , sign-up api`);
-});
+app.use('/', categoryRouter);
 
 // listening port
 const PORT=process.env.PORT||3000;
