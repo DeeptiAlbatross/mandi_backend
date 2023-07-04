@@ -1,53 +1,39 @@
-import ProductModel from "../../models/product";
-const jwt=require('jsonwebtoken');
-const bcrypt=require('bcrypt');
-const confiq=require('../config/config').get(process.env.NODE_ENV);
-// const mongoose = require ("mongoose");
+const { json } = require("body-parser");
+const { response } = require("express");
+var express = require("express");
+const { JsonWebTokenError } = require("jsonwebtoken");
+const UserModel = require("../../models/user");
+const ItemModel = require("../../models/categoryItems");
+var router = express.Router();
 
-app.post('/api/login', function(req,res){
-    let token=req.cookies.auth;
-    User.findByToken(token,(err,user)=>{
-        if(err) return  res(err);
-        if(user) return res.status(400).json({
-            error :true,
-            message:"You are already logged in"
-        });
-    
-        else{
-            User.findOne({'email':req.body.email},function(err,user){
-                if(!user) return res.json({isAuth : false, message : ' Auth failed ,email not found'});
-        
-                user.comparepassword(req.body.password,(err,isMatch)=>{
-                    if(!isMatch) return res.json({ isAuth : false,message : "password doesn't match"});
-        
-                user.generateToken((err,user)=>{
-                    if(err) return res.status(400).send(err);
-                    res.cookie('auth',user.token).json({
-                        isAuth : true,
-                        id : user._id
-                        ,email : user.email
-                    });
-                });    
-            });
-          });
-        }
-    });
-});
+// Api to post the user data.
+router.post("/user/add", function (req, res, next) {
+  const { firstname, email, password, phone, city, state, country, image ,category} = req.body;
 
-app.get('/api/profile',auth,function(req,res){
-    res.json({
-        isAuth: true,
-        id: req.user._id,
-        email: req.user.email,
-        name: req.user.firstname + req.user.lastname
-        
+  const NewUser = new UserModel({
+    firstname,
+    email,
+    password,
+    phone,
+    city,
+    state,
+    country,
+    image,
+    category
+  });
+
+  NewUser.save()
+    .then((SavedUser) => {
+      console.log(" User Category saved:", SavedUser);
+      res.send(SavedUser);
     })
+    .catch((error) => {
+      res.send(error);
+    });
 });
 
-app.get('/api/logout',auth,function(req,res){
-    req.user.deleteToken(req.token,(err,user)=>{
-        if(err) return res.status(400).send(err);
-        res.sendStatus(200);
-    });
 
-}); 
+
+// Ab konsi api bnani hai bhai ?
+
+module.exports = router;

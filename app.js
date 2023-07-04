@@ -2,8 +2,8 @@ const express=require('express');
 const mongoose= require('mongoose');
 const bodyparser=require('body-parser');
 const cookieParser=require('cookie-parser');
-const db=require('./config/config').get(process.env.NODE_ENV);
 var categoryRouter = require('./project/category/routing');
+var authRouter = require("./project/authentication/controller")
 
 const app=express();
 // app use
@@ -31,6 +31,7 @@ mongoose.connect(url)
     console.log("Database is connected...");
   });
 
+app.use('/auth', authRouter);
 app.use('/', categoryRouter);
 
 // listening port

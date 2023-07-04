@@ -1,6 +1,6 @@
 var mongoose = require("mongoose");
 
-const CategorySchema = mongoose.Schema({
+const categorySchema = mongoose.Schema({
   categoryName: {
     type: String,
     required: true,
@@ -8,5 +8,5 @@ const CategorySchema = mongoose.Schema({
   image: String,
 });
 
-const Category = mongoose.model("category", CategorySchema);
+const Category = mongoose.model("Category", categorySchema);
 module.exports = Category;
