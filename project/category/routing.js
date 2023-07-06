@@ -164,4 +164,16 @@ router.get("/category/user/items/:id/detail", function (req, res, next) {
     });
 });
 
+// category find krke do
+
+router.get("/category/user/item/:id/detail", async function (req, res, next) {
+  const {id} = req.params
+  try {
+    let items = await CategoryModel.find().populate("category",id);
+    res.send({ success: true, data: items });
+  } catch (err) {
+    res.send({ success: false, error: err });
+    console.log("data items nhi h");
+  }
+});
 module.exports = router;
