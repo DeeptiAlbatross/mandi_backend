@@ -4,6 +4,7 @@ const bodyparser=require('body-parser');
 const cookieParser=require('cookie-parser');
 var categoryRouter = require('./project/category/routing');
 var authRouter = require("./project/authentication/controller")
+var addToCartRouter = require("./project/addToCart/routing")
 
 const app=express();
 // app use
@@ -32,6 +33,8 @@ mongoose.connect(url)
   });
 
 app.use('/auth', authRouter);
+app.use('/cart', addToCartRouter);
+
 app.use('/', categoryRouter);
 
 // listening port

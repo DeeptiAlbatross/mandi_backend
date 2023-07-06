@@ -2,6 +2,7 @@ const { json } = require("body-parser");
 const { response } = require("express");
 var express = require("express");
 const CategoryModel = require("../../models/category");
+const { db, aggregate } = require("../../models/categoryItems");
 const CategoryItemModel = require("../../models/categoryItems");
 var router = express.Router();
 
@@ -79,7 +80,6 @@ router.delete("", function (req, res, next) {
   }
 });
 
-
 // api to save the item details.
 router.post("/category/item/add", function (req, res, next) {
   const { name, image, price, quantity, category } = req.body;
@@ -102,9 +102,7 @@ router.post("/category/item/add", function (req, res, next) {
     });
 });
 
-
 // api to fetch the saved data/items.
-
 router.get("/category/admin/item/list", function (req, res) {
   CategoryItemModel.find()
     .then((result) => {
@@ -116,8 +114,54 @@ router.get("/category/admin/item/list", function (req, res) {
       res.send(error);
     });
 });
+`
+`
+// api to find the category of the item.
+router.get("/category/details/admin/item/list", async function (req, res) {
+  try {
+    let items = await CategoryItemModel.find().populate("category");
+    res.send({ success: true, data: items });
+  } catch (err) {
+    res.send({ success: false, error: err });
+    console.log("data items nhi h");
+  }
+});
+
+
+// Api to add category .
+router.get("/category/admin/categoryName/add",function (req, res, next) {
+  const { categoryName, image } = req.body;
+
+  const AddCategory = new CategoryModel({
+    categoryName,
+    image
+  });
+  AddCategory.save()
+    .then((savedCategory) => {
+      console.log("Category added:", savedCategory);
+      res.send(savedCategorys);
+    })
+    .catch((error) => {
+      res.send(error);
+    });
+});
+
+
+
+//  Api category item ki detail de.
+// like jese mango fruits category h to uski details do .
+router.get("/category/user/items/:id/detail", function (req, res, next) {
+  const {id} = req.params
+
+  CategoryItemModel.findOne({_id:id}).populate("category")
+    .then((result) => {
+      console.log("result", result);
+      res.send(result);
+    })
+    .catch((error) => {
+      console.log("error", error);
+      res.send(error);
+    });
+});
 
 module.exports = router;
-
-
-
