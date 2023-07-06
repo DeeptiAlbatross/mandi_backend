@@ -64,8 +64,7 @@ router.delete("/delete", async (req, res) => {
   }
 });
 
-
-// Endpoint for updating the quantity of an item in the cart
+// Api to update the price and the  quantity of the items.
 router.post('/update', async (req, res) => {
   const { quantity, price, user } = req.body;
   let OB = {}
@@ -74,10 +73,7 @@ router.post('/update', async (req, res) => {
 
   try {
     // Find the user's cart and update the item quantity
-    const updatedCart = await AddToCartModel.findOneAndUpdate(
-      { user },
-      OB
-    );
+    const updatedCart = await AddToCartModel.findOneAndUpdate({ user },OB);
 
     if (!updatedCart) {
       return res.status(404).json({ message: 'Cart or item not found' });
@@ -89,5 +85,37 @@ router.post('/update', async (req, res) => {
     res.status(500).json({ message: 'Failed to update item quantity' });
   }
 });
+
+
+// Api to delete the cart when the cart is empty.
+
+router.delete('/cart/delete/:userId', async (req, res) => {
+  const { userId } = req.body;
+
+  try {
+    // Check if the cart is fully empty
+    const cart = await AddToCartModel.findOne({ user });
+    if (!cart) {
+      return res.status(404).json({ message: 'Cart not found' });
+    }
+
+    if (cart.items.length === 0) {
+      // Delete the cart if it is fully empty
+      await Cart.findOneAndDelete({ user: userId });
+
+      return res.json({ message: 'Cart deleted successfully' });
+    }
+
+    res.json({ message: 'Cart is not empty' });
+  } catch (error) {
+    console.error('An error occurred while deleting the cart:', error);
+    res.status(500).json({ message: 'Failed to delete the cart' });
+  }
+});
+
+app.listen(3000, () => {
+  console.log('Server started on port 3000');
+});
+
 
 module.exports = router;
