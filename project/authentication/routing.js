@@ -1,40 +1,104 @@
 const { json } = require("body-parser");
 const { response } = require("express");
 var express = require("express");
-const CategoryModel = require("../../models/category");
-const { db, aggregate } = require("../../models/categoryItems");
-const CategoryItemModel = require("../../models/categoryItems");
-const User = require('../models/user');
 var router = express.Router();
+const AuthenticateModel = require("../../models/user");
+const { db, aggregate } = require("../../models/user");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
+// Api to save the user data.
+router.post("/user/save", function (req, res, next) {
+  const { username, email, password, phone } = req.body;
 
-// POST /register
-router.post('/register', async (req, res) => {
+  const NewUser = new AuthenticateModel({
+    username,
+    email,
+    password,
+    phone,
+  });
+
+  NewUser.save()
+    .then((savedUser) => {
+      console.log("User details saved:", savedUser);
+      res.send(savedUser);
+    })
+    .catch((error) => {
+      res.send(error);
+      console.log("Error occured");
+    });
+});
+
+//Api to Signup/Register.
+router.post("/signup", async (req, res) => {
+  const { username, password, email, phone } = req.body;
+
   try {
-    const { username, email, password } = req.body;
+    // Check if the username already exists
+    const existingUser = await AuthenticateModel.findOne({ email });
 
-    // Check if the user already exists
-    const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ message: 'User already exists' });
+      return res.status(409).json({ message: "Username already exists" });
+    } else {
+      bcrypt.genSalt(10, function (saltError, salt) {
+        if (saltError) {
+          return next(saltError)
+        } else {
+          bcrypt.hash(password, salt, function(hashError, hash) {
+            if (hashError) {
+              return next(hashError)
+            }
+  
+            // user.password = hash
+            const NewUser = new AuthenticateModel({
+              username,
+              email,
+              password: hash,
+              phone,
+            });
+      
+            NewUser.save().then((savedUser) => {
+              console.log("Signup successfully:", savedUser);
+              res.send(savedUser);
+            });
+          })
+        }
+      })
+      
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "An error occurred" });
+  }
+});
+
+// Login
+router.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    // Find the user by username
+    const user = await AuthenticateModel.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
 
-    // Create a new user
-    const newUser = new User({
-      username,
-      email,
-      password
-    });
+    // Compare the password
+    const passwordMatch = await bcrypt.compareSync(password, user.password);
 
-    // Save the user to the database
-    await newUser.save();
+    if (!passwordMatch) {
+      return res.status(401).json({ message: "Invalid password" });
+    }
 
-    res.status(200).json({ message: 'User registered successfully' });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'An error occurred while registering the user' });
+    // Generate a JWT token
+    const token = jwt.sign({ userId: user._id, username: user.username }, 'Secret-Key', { expiresIn: '24h' });
+    
+    res.json({ token });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "An error occurred" });
   }
 });
 
 module.exports = router;
-var router = express.Router();

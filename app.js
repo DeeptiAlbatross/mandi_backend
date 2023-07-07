@@ -3,8 +3,8 @@ const mongoose= require('mongoose');
 const bodyparser=require('body-parser');
 const cookieParser=require('cookie-parser');
 var categoryRouter = require('./project/category/routing');
-var authRouter = require("./project/authentication/controller")
-var addToCartRouter = require("./project/addToCart/routing")
+var authenticationRouter = require("./project/authentication/routing");
+var addToCartRouter = require("./project/addToCart/routing");
 
 const app=express();
 // app use
@@ -32,7 +32,7 @@ mongoose.connect(url)
     console.log("Database is connected...");
   });
 
-app.use('/auth', authRouter);
+app.use('/authentication', authenticationRouter);
 app.use('/cart', addToCartRouter);
 
 app.use('/', categoryRouter);

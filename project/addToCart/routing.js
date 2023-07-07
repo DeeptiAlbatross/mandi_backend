@@ -46,7 +46,6 @@ router.get("/list", async (req, res) => {
 });
 
 //   api to delete the items from the cart
-
 router.delete("/delete", async (req, res) => {
   try {
     const { user, id } = req.body;
@@ -56,7 +55,7 @@ router.delete("/delete", async (req, res) => {
       { $pull: { cartItems: id } }
     ).then((deletedItems) => {
       console.log("Deleted Items", id);
-      res.send(deletedItems);
+      res.send(deletedItems);AddToCartModel
     });
   } catch (err) {
     console.log("Cannot delete item", err);
@@ -86,11 +85,9 @@ router.post('/update', async (req, res) => {
   }
 });
 
-
 // Api to delete the cart when the cart is empty.
-
-router.delete('/cart/delete/:userId', async (req, res) => {
-  const { userId } = req.body;
+router.delete('/delete/:userId', async (req, res) => {
+  const { user } = req.body;
 
   try {
     // Check if the cart is fully empty
@@ -99,9 +96,9 @@ router.delete('/cart/delete/:userId', async (req, res) => {
       return res.status(404).json({ message: 'Cart not found' });
     }
 
-    if (cart.items.length === 0) {
+    if (cart.cartItems.length === 0) {
       // Delete the cart if it is fully empty
-      await Cart.findOneAndDelete({ user: userId });
+      await cart.findOneAndDelete({ user: user});
 
       return res.json({ message: 'Cart deleted successfully' });
     }
@@ -113,8 +110,55 @@ router.delete('/cart/delete/:userId', async (req, res) => {
   }
 });
 
-app.listen(3000, () => {
-  console.log('Server started on port 3000');
+// Api to find the no of items in the cart
+router.get('/items/count/:userId', async (req, res) => {
+  const { user } = req.body;
+
+
+  
+  try {
+    // Find the user's cart
+    const cart = await AddToCartModel.findOne({ user});
+    if (!cart) {
+      return res.status(404).json({ message: 'Cart not found' });
+    }
+    // Get the number of items in the cart
+    const itemCount = cart.cartItems.length;
+
+    res.json({ itemCount });
+    console.log("The no of items in the cart is :",itemCount);
+
+  } catch (error) {
+    console.error('An error occurred while retrieving the item count:', error);
+    res.status(500).json({ message: 'Failed to retrieve the item count' });
+  }
+});
+
+
+
+// Remove an item from the cart
+router.delete('/remover-cart', async (req, res) => {
+  const { user, id } = req.body;
+
+    // Check if the cart is empty after removing the item
+    if (cart.cartItems.length === 1) {
+      // Delete the entire cart
+      await AddToCartModel.findByIdAndDelete(user);
+      res.json({ message: 'Cart deleted' });
+    } else {
+      res.json(cart);
+    }
+
+    try {
+      // Remove the item from the cart
+      const cart = await AddToCartModel.findByIdAndUpdate(
+        user,
+        { $pull: { cartItems: id } },
+      );
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'An error occurred' });
+  }
 });
 
 
